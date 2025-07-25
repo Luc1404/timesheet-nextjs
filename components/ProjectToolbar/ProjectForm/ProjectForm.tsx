@@ -10,6 +10,9 @@ import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
 import Divider from "@mui/material/Divider";
 import General from "./General/General";
+import Notification from "./Notification/Notification";
+import TasksTab from "./Task/Task";
+
 
 interface ProjectFormProps {
   open: boolean;
@@ -66,6 +69,9 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ open, onClose }) => {
         </Tabs>
         <Divider />
          {tab === 0 && <General />}
+         {/* {tab === 1 && <Team />} */}
+         {tab === 2 && <TasksTab />}
+         {tab === 3 && <Notification />}
       </DialogContent>
        <Divider sx={{ mx: 3 }} />
       <DialogActions sx={{ px: 3, pb: 2 }}>
