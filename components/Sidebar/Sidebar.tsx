@@ -17,29 +17,46 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import LogoutIcon from "@mui/icons-material/Logout";
+import { useAuth } from "../AuthContext";
 
 export default function Sidebar({ children }: { children?: React.ReactNode }) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const router = useRouter();
+  const { user, logout } = useAuth();
+
   const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
+
   const handleMenuClose = () => {
     setAnchorEl(null);
   };
+
   const handleLogout = (e: React.MouseEvent) => {
     e.preventDefault();
     setAnchorEl(null);
-    router.push("/login");
+    
+    // Gọi hàm logout từ AuthContext
+    logout();
+    
+    // Chuyển hướng về trang chính (login)
+    router.push("/");
   };
+
   return (
-    <Box sx={{ display: "flex", flexDirection: "row", flex: 1, minHeight: 0 }}>
+    <>
       <Box
         sx={{
+          position: "fixed",
+          top: 64,
+          left: 0,
           width: "300px",
+          height: "calc(100vh - 64px)",
           background: "#fff",
           boxShadow: "2px 0 8px rgba(0,0,0,0.08)",
+          zIndex: 1200,
+          overflowY: "auto",
         }}
       >
         {/* Sidebar Profile */}
@@ -95,10 +112,10 @@ export default function Sidebar({ children }: { children?: React.ReactNode }) {
               }}
             >
               <Typography sx={{ fontWeight: 600, lineHeight: 1.2 }}>
-                admin dev
+                {user?.name || "admin dev"}
               </Typography>
               <Typography sx={{ fontSize: "0.97rem", opacity: 0.97 }}>
-                admin.dev@gmail.com
+                {user?.email || "admin.dev@gmail.com"}
               </Typography>
             </Box>
             <IconButton
@@ -176,9 +193,9 @@ export default function Sidebar({ children }: { children?: React.ReactNode }) {
         </List>
       </Box>
       {/* Main content area (children) */}
-      <Box sx={{ flex: 1, minHeight: 0, p: 0, backgroundColor: "rgb(217, 215, 215)" }}>
+      <Box sx={{ marginLeft: "300px", marginTop: "64px", height: "calc(100vh - 64px)", overflowY: "auto", backgroundColor: "rgb(217, 215, 215)" }}>
         {children}
       </Box>
-    </Box>
+    </>
   );
 }

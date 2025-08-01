@@ -13,16 +13,52 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
 import dayjs from "dayjs";
 import TextareaAutosize from "@mui/material/TextareaAutosize";
+import ClientTab from "../General/Client/Client";
+import Dialog from "@mui/material/Dialog";
+import DialogContent from "@mui/material/DialogContent";
+import { useForm, Controller } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
 
-const General = () => {
+
+interface Customer {
+  id: string | number;
+  name: string;
+}
+
+interface GeneralProps {
+  customers: Customer[];
+}
+
+const schema = yup.object().shape({
+  client: yup.string().required("Project customer is required!"),
+  projectName: yup.string().required("Project name is required!"),
+  projectCode: yup.string().required("Project code is required!"),
+});
+
+
+const General = ({ customers = [] }: GeneralProps) => {
   const [client, setClient] = useState("");
-  const [projectName, setProjectName] = useState("");
-  const [projectCode, setProjectCode] = useState("");
   const [startAt, setStartAt] = useState<dayjs.Dayjs | null>(null);
   const [endAt, setEndAt] = useState<dayjs.Dayjs | null>(null);
   const [note, setNote] = useState("");
   const [allUser, setAllUser] = useState(false);
   const [projectType, setProjectType] = useState("");
+  const [openClientModal, setOpenClientModal] = useState(false);
+  const handleOpenClient = () => {
+    setOpenClientModal(true);
+  };
+  const handleCloseClient = () => {
+    setOpenClientModal(false);
+  };
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    mode: "onTouched",
+    resolver: yupResolver(schema),
+  });
 
   return (
     <Box
@@ -32,118 +68,249 @@ const General = () => {
       <Stack
         direction={{ xs: "column", sm: "row" }}
         spacing={2}
-        alignItems="flex-start"
+        alignItems="center"
+        sx={{ mb: 2 }}
       >
-        <Box sx={{ flex: 1, }}>
-          <Typography fontWeight="bold" fontSize={15} mb={0.5}>
+        <Box
+          sx={{
+            width: { xs: "100%", sm: "70%" },
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          <Typography
+            fontWeight="bold"
+            fontSize={15}
+            sx={{
+              whiteSpace: "nowrap",
+              mr: 2,
+              minWidth: "130px",
+            }}
+          >
             Client <span style={{ color: "#f44336" }}>*</span>
           </Typography>
-          <FormControl fullWidth required>
-            <Select
-              value={client}
-              onChange={(e) => setClient(e.target.value)}
-              displayEmpty
-            >
-              <MenuItem value="">Choose a client...</MenuItem>
-              {/* Thêm các MenuItem client ở đây */}
-            </Select>
-          </FormControl>
+          <Controller
+            name="client"
+            control={control}
+            render={({ field }) => (
+              <FormControl fullWidth error={!!errors.client} required>
+                <Select
+                  {...field}
+                  displayEmpty
+                  onChange={(e) => field.onChange(e.target.value)}
+                  onBlur={field.onBlur}
+                  value={field.value || ""}
+                  MenuProps={{
+                    PaperProps: {
+                      sx: {
+                        maxHeight: 300,
+                        maxWidth: 400,
+                        width: "100%",
+                        overflowY: "auto",
+                      },
+                    },
+                  }}
+                >
+                  <MenuItem value="">Choose a client...</MenuItem>
+                  {customers.map((customer) => (
+                    <MenuItem key={customer.id} value={customer.id}>
+                      {customer.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+                {/* ✅ Hiển thị lỗi */}
+                {errors.client && (
+                  <Typography fontSize={16} variant="caption" color="#f44336" mt={0.5}>
+                    {errors.client.message}
+                  </Typography>
+                )}
+              </FormControl>
+            )}
+          />
         </Box>
         <Box
           sx={{
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "flex-end",
+            alignSelf: "center",
           }}
         >
-          <Typography fontWeight={500} fontSize={15} mb={0.5}>
-            &nbsp;
-          </Typography>
           <Button
             variant="contained"
             startIcon={<AddIcon />}
-            sx={{ height: 56, bgcolor: "#f44336" }}
+            onClick={handleOpenClient}
+            sx={{
+              height: 50,
+              width: 160,
+              bgcolor: "#f44336",
+              textTransform: "none",
+            }}
           >
             New Client
           </Button>
         </Box>
       </Stack>
-      <Box>
-        <Typography fontWeight="bold" fontSize={15} mb={0.5}>
+      <Box sx={{ display: "flex", alignItems: "center", mb: 2, width: "80%" }}>
+        <Typography
+          fontWeight="bold"
+          fontSize={15}
+          sx={{
+            whiteSpace: "nowrap",
+            mr: 2,
+            minWidth: "130px",
+          }}
+        >
           Project Name <span style={{ color: "#f44336" }}>*</span>
         </Typography>
-        <TextField
-          placeholder="Project Name"
-          required
-          fullWidth
-          value={projectName}
-          onChange={(e) => setProjectName(e.target.value)}
+        <Controller
+          name="projectName"
+          control={control}
+          render={({ field }) => (
+            <TextField
+              {...field}
+              placeholder="Project Name"
+              fullWidth
+              error={!!errors.projectName}
+              helperText={
+                errors.projectName?.message && (
+                  <Typography fontSize={16} color="#f44336">
+                    {errors.projectName.message}
+                  </Typography>
+                )
+              }
+            />
+          )}
         />
       </Box>
-      <Box>
-        <Typography fontWeight="bold" fontSize={15} mb={0.5}>
+      <Box sx={{ display: "flex", alignItems: "center", mb: 2, width: "80%" }}>
+        <Typography fontWeight="bold" fontSize={15} sx={{
+          whiteSpace: "nowrap",
+          mr: 2,
+          minWidth: "130px",
+        }}>
           Project Code <span style={{ color: "#f44336" }}>*</span>
         </Typography>
-        <TextField
-          placeholder="Project Code"
-          required
-          fullWidth
-          value={projectCode}
-          onChange={(e) => setProjectCode(e.target.value)}
+        <Controller
+          name="projectCode"
+          control={control}
+          render={({ field }) => (
+            <TextField
+              {...field}
+              placeholder="Project Code"
+              fullWidth
+              error={!!errors.projectCode}
+             helperText={
+                errors.projectName?.message && (
+                  <Typography fontSize={16} color="#f44336">
+                    {errors.projectName.message}
+                  </Typography>
+                )
+              }
+            />
+          )}
         />
       </Box>
-      <Box>
-        <Typography fontWeight="bold" fontSize={15} mb={0.5}>
-          Dates<span style={{ color: "#f44336" }}>*</span>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          mb: 2,
+        }}
+      >
+        <Typography
+          fontWeight="bold"
+          fontSize={15}
+          sx={{
+            whiteSpace: "nowrap",
+            minWidth: "130px",
+            mr: 2,
+          }}
+        >
+          Dates <span style={{ color: "#f44336" }}>*</span>
         </Typography>
         <Stack
           direction={{ xs: "column", sm: "row" }}
           spacing={2}
           alignItems="center"
+          sx={{ flex: 1 }}
         >
           <DatePicker
             value={startAt}
             onChange={(newValue) => setStartAt(newValue)}
-            sx={{ width: "100%" }}
             slotProps={{
               textField: {
                 fullWidth: true,
                 label: "Start at",
+                sx: { width: 400 },
               },
             }}
           />
-          <Typography sx={{ mx: 1 }}>to</Typography>
+          <Typography>to</Typography>
           <DatePicker
             value={endAt}
             onChange={(newValue) => setEndAt(newValue)}
-            sx={{ width: "100%" }}
-            slotProps={{ textField: { fullWidth: true, label: "End at" } }}
+            slotProps={{
+              textField: {
+                fullWidth: true,
+                label: "End at",
+                sx: { width: 400 },
+              },
+            }}
           />
         </Stack>
       </Box>
-      <Box>
-        <Typography fontWeight="bold" fontSize={15} mb={0.5}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          mb: 2,
+        }}
+      >
+        <Typography
+          fontWeight="bold"
+          fontSize={15}
+          sx={{
+            whiteSpace: "nowrap",
+            minWidth: "130px",
+            mr: 2,
+          }}
+        >
           Note
         </Typography>
+
         <TextareaAutosize
           minRows={2}
           style={{
-            width: "100%",
+            flex: 1,
             fontSize: "16px",
             padding: "8px",
             borderRadius: "4px",
             border: "1px solid #ccc",
             resize: "vertical",
             boxSizing: "border-box",
+            width: "100%",
           }}
           value={note}
           onChange={(e) => setNote(e.target.value)}
         />
       </Box>
-      <Box>
-        <Typography fontWeight="bold" fontSize={15} mb={0.5}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          mb: 2,
+        }}
+      >
+        <Typography
+          fontWeight="bold"
+          fontSize={15}
+          sx={{
+            whiteSpace: "nowrap",
+            minWidth: "130px",
+            mr: 2,
+          }}
+        >
           All User
         </Typography>
+
         <FormControlLabel
           control={
             <Checkbox
@@ -152,22 +319,38 @@ const General = () => {
             />
           }
           label="Auto add user as a member of this project when creating new user"
+          sx={{ flex: 1 }}
         />
       </Box>
-      <Box>
-        <Typography fontWeight="bold" fontSize={15} mb={0.5}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "flex-start",
+          mb: 2,
+        }}
+      >
+        <Typography
+          fontWeight="bold"
+          fontSize={15}
+          sx={{
+            whiteSpace: "nowrap",
+            minWidth: "130px",
+            mr: 2,
+            mt: 1,
+          }}
+        >
           Project Type <span style={{ color: "#f44336" }}>*</span>
         </Typography>
-        <Box sx={{ mt: 1 }}>
-          <Stack direction="row" spacing={2}>
+        <Box sx={{ flex: 1 }}>
+          <Stack direction="row" spacing={2} flexWrap="wrap">
             {["T&M", "Fixed Frice", "Non-Bill", "ODC"].map((type) => (
               <Button
                 key={type}
                 variant={projectType === type ? "contained" : "outlined"}
                 onClick={() => setProjectType(type)}
                 sx={{
-                  minWidth: 180,
-                  height: 56,
+                  minWidth: 220,
+                  height: 60,
                   bgcolor: projectType === type ? "#f57c00" : "#fff",
                   color: projectType === type ? "#fff" : "#222",
                   fontWeight: 700,
@@ -185,15 +368,16 @@ const General = () => {
               </Button>
             ))}
           </Stack>
-          <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
+
+          <Stack direction="row" spacing={2} sx={{ mt: 2 }} flexWrap="wrap">
             {["Product", "Training", "NoSalary"].map((type) => (
               <Button
                 key={type}
                 variant={projectType === type ? "contained" : "outlined"}
                 onClick={() => setProjectType(type)}
                 sx={{
-                  minWidth: 180,
-                  height: 56,
+                  minWidth: 220,
+                  height: 60,
                   bgcolor: projectType === type ? "#f57c00" : "#fff",
                   color: projectType === type ? "#fff" : "#222",
                   fontWeight: 700,
@@ -213,6 +397,11 @@ const General = () => {
           </Stack>
         </Box>
       </Box>
+      <Dialog open={openClientModal} onClose={handleCloseClient}>
+        <DialogContent>
+          <ClientTab onClose={handleCloseClient} />
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 };

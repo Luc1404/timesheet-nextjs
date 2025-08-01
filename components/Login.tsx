@@ -1,53 +1,271 @@
-import React, { useState } from "react";
+"use client";
 
-export default function Login() {
+import React, { useState, useEffect } from "react";
+import {
+  Box,
+  Paper,
+  TextField,
+  Button,
+  Typography,
+  Checkbox,
+  FormControlLabel,
+  InputAdornment,
+  IconButton,
+} from "@mui/material";
+import { Person, Lock, Visibility, VisibilityOff } from "@mui/icons-material";
+
+interface LoginProps {
+  onLogin: (email: string, password: string) => void;
+  error?: string;
+}
+
+export default function Login({ onLogin, error }: LoginProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [localError, setLocalError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Cập nhật lỗi khi prop error thay đổi
+  useEffect(() => {
+    if (error) {
+      setLocalError(error);
+    }
+  }, [error]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Xử lý đăng nhập ở đây (hiện tại chỉ kiểm tra đơn giản)
+    setLocalError("");
+    setIsLoading(true);
+    
     if (!email || !password) {
-      setError("Vui lòng nhập đầy đủ email và mật khẩu.");
+      setLocalError("Vui lòng nhập đầy đủ thông tin.");
+      setIsLoading(false);
       return;
     }
-    setError("");
-    // TODO: Gọi API đăng nhập hoặc điều hướng
-    alert(`Đăng nhập với email: ${email}`);
+
+    try {
+      await onLogin(email, password);
+    } catch (error) {
+      setLocalError("Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = () => {
+    // Xử lý đăng nhập Google
+    console.log("Google login clicked");
   };
 
   return (
-    <div style={{ maxWidth: 350, margin: "60px auto", padding: 32, background: "#fff", borderRadius: 12, boxShadow: "0 2px 16px rgba(0,0,0,0.08)" }}>
-      <h2 style={{ textAlign: "center", marginBottom: 24 }}>Đăng nhập</h2>
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: 18 }}>
-          <label style={{ display: "block", marginBottom: 6, fontWeight: 500 }}>Email</label>
-          <input
-            type="email"
+    <Box
+      sx={{
+        minHeight: "100vh",
+        background: "#00BCD4", 
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 2,
+      }}
+    >
+      {/* Logo/Tên ứng dụng */}
+      <Typography
+        variant="h3"
+        sx={{
+          color: "#ebeff3ff", 
+          fontWeight: 600,
+          marginBottom: 4,
+          textAlign: "center",
+        }}
+      >
+        Timesheet
+      </Typography>
+
+      {/* Form đăng nhập */}
+      <Paper
+        elevation={3}
+        sx={{
+          width: "100%",
+          maxWidth: 400,
+          padding: 4,
+          borderRadius: 2,
+          background: "#fff",
+        }}
+      >
+        <Typography
+          variant="h5"
+          sx={{
+            color: "#424242",
+            fontWeight: 600,
+            marginBottom: 3,
+            textAlign: "center",
+          }}
+        >
+          Log in
+        </Typography>
+
+        <Box component="form" onSubmit={handleSubmit} sx={{ width: "100%" }}>
+          {/* Email field */}
+          <TextField
+            fullWidth
+            placeholder="User name or email *"
             value={email}
-            onChange={e => setEmail(e.target.value)}
-            style={{ width: "100%", padding: 10, borderRadius: 6, border: "1px solid #ccc" }}
-            placeholder="Nhập email"
-            required
+            onChange={(e) => setEmail(e.target.value)}
+            margin="normal"
+            disabled={isLoading}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Person sx={{ color: "#888", fontSize: 20 }} />
+                </InputAdornment>
+              ),
+            }}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 1,
+              },
+            }}
           />
-        </div>
-        <div style={{ marginBottom: 18 }}>
-          <label style={{ display: "block", marginBottom: 6, fontWeight: 500 }}>Mật khẩu</label>
-          <input
-            type="password"
+
+          {/* Password field */}
+          <TextField
+            fullWidth
+            placeholder="Password *"
+            type={showPassword ? "text" : "password"}
             value={password}
-            onChange={e => setPassword(e.target.value)}
-            style={{ width: "100%", padding: 10, borderRadius: 6, border: "1px solid #ccc" }}
-            placeholder="Nhập mật khẩu"
-            required
+            onChange={(e) => setPassword(e.target.value)}
+            margin="normal"
+            disabled={isLoading}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Lock sx={{ color: "#888", fontSize: 20 }} />
+                </InputAdornment>
+              ),
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() => setShowPassword(!showPassword)}
+                    edge="end"
+                    disabled={isLoading}
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 1,
+              },
+            }}
           />
-        </div>
-        {error && <div style={{ color: "#f44336", marginBottom: 12 }}>{error}</div>}
-        <button type="submit" style={{ width: "100%", padding: 12, background: "#f44336", color: "#fff", border: "none", borderRadius: 6, fontWeight: 600, fontSize: "1rem", cursor: "pointer" }}>
-          Đăng nhập
-        </button>
-      </form>
-    </div>
+
+          {/* Remember me checkbox */}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginTop: 2,
+              marginBottom: 2,
+            }}
+          >
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  disabled={isLoading}
+                  sx={{ color: "#888" }}
+                />
+              }
+              label="Remember me"
+              sx={{ color: "#424242" }}
+            />
+          </Box>
+
+          {/* Error message */}
+          {localError && (
+            <Typography
+              variant="body2"
+              sx={{
+                color: "#f44336",
+                marginBottom: 2,
+                textAlign: "center",
+              }}
+            >
+              {localError}
+            </Typography>
+          )}
+
+          {/* Login button */}
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            disabled={isLoading}
+            sx={{
+              background: "#E91E63", 
+              color: "#fff",
+              padding: "12px",
+              borderRadius: 1,
+              fontSize: "16px",
+              fontWeight: 500,
+              marginBottom: 2,
+              textTransform: "none",
+              "&:hover": {
+                background: "#C2185B",
+              },
+              "&:disabled": {
+                background: "#ccc",
+              },
+            }}
+          >
+            {isLoading ? "Đang đăng nhập..." : "Log in"}
+          </Button>
+
+          {/* Google login button */}
+          <Button
+            fullWidth
+            variant="contained"
+            onClick={handleGoogleLogin}
+            disabled={isLoading}
+            sx={{
+              background: "#1565C0",
+              color: "#fff",
+              padding: "12px",
+              borderRadius: 1,
+              fontSize: "16px",
+              fontWeight: 500,
+              textTransform: "none",
+              "&:hover": {
+                background: "#0D47A1",
+              },
+              "&:disabled": {
+                background: "#ccc",
+              },
+            }}
+          >
+            Log In With Google
+          </Button>
+        </Box>
+      </Paper>
+
+      {/* Footer */}
+      <Typography
+        variant="body2"
+        sx={{
+          color: "#424242",
+          marginTop: 4,
+          textAlign: "center",
+        }}
+      >
+        © 2025 Timesheet. Version 4.3.0.0 [20251703]
+      </Typography>
+    </Box>
   );
 } 

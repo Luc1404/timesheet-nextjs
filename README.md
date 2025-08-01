@@ -1,36 +1,82 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Timesheet Next.js Application
 
-## Getting Started
+## Mô tả
+Ứng dụng Timesheet được xây dựng bằng Next.js với hệ thống authentication tích hợp.
 
-First, run the development server:
+## Tính năng chính
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+### Authentication
+- Trang đăng nhập với giao diện Material-UI
+- Tích hợp API authentication: `https://training-api-timesheet.nccsoft.vn/api/TokenAuth/Authenticate`
+- Lưu trữ session bằng localStorage và cookies
+- Bảo vệ route với middleware
+- Nút logout trong sidebar
+
+### Giao diện
+- Trang login với background teal và form trắng
+- Responsive design
+- Loading states và error handling
+- Material-UI components
+
+## Cấu trúc dự án
+
+```
+timesheet-nextjs/
+├── app/
+│   ├── dashboard/          # Trang dashboard (cần đăng nhập)
+│   ├── layout.tsx          # Layout chính với providers
+│   ├── page.tsx            # Trang chính (login)
+│   └── globals.css
+├── components/
+│   ├── AuthContext.tsx     # Context quản lý authentication
+│   ├── Login.tsx           # Component đăng nhập
+│   ├── Header/             # Header component
+│   ├── Sidebar/            # Sidebar với nút logout
+│   ├── ProjectToolbar/     # Toolbar quản lý projects
+│   └── ClientProviders.tsx # Providers cho Material-UI
+├── middleware.ts           # Middleware bảo vệ routes
+└── package.json
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Cách sử dụng
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Chạy ứng dụng
+```bash
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Truy cập
+- Mở trình duyệt tại `http://localhost:3000`
+- Trang mặc định sẽ hiển thị form đăng nhập
+- Sau khi đăng nhập thành công, sẽ chuyển hướng đến `/dashboard`
 
-## Learn More
+### API Authentication
+Ứng dụng sử dụng API endpoint:
+```
+POST https://training-api-timesheet.nccsoft.vn/api/TokenAuth/Authenticate
+```
 
-To learn more about Next.js, take a look at the following resources:
+Body request:
+```json
+{
+  "userNameOrEmailAddress": "email@example.com",
+  "password": "password",
+  "rememberClient": true
+}
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Bảo mật
+- Middleware bảo vệ route `/dashboard/*`
+- Session được lưu trong localStorage và cookies
+- Access token được lưu trữ an toàn
+- Tự động logout khi token hết hạn
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Công nghệ sử dụng
+- Next.js 15.4.3
+- React 19.1.0
+- Material-UI v7
+- TypeScript
+- Emotion (CSS-in-JS)
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Phiên bản
+© 2025 Timesheet. Version 4.3.0.0 [20251703]

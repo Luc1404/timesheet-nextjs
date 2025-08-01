@@ -12,11 +12,14 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import DescriptionIcon from "@mui/icons-material/Description";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import { useAuth } from "../AuthContext";
 
 export default function Header() {
+
+
   return (
-    <AppBar position="static" sx={{ background: "#f44336", boxShadow: "none", width: '100%' }}>
-      <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
+    <AppBar position="fixed" sx={{ background: "#f44336", boxShadow: "none", width: '100%', height: 64, zIndex: 1300 }}>
+      <Toolbar sx={{ display: "flex", justifyContent: "space-between", minHeight: 64 }}>
         <Box sx={{ display: "flex", alignItems: "center" }}>
           <Image
             src="/Timesheet logo.png"
@@ -25,7 +28,7 @@ export default function Header() {
             height={40}
             style={{ marginRight: 2, height: "auto" }}
           />
-          <Typography variant="h6" sx={{ fontWeight: 700}}>
+          <Typography variant="h6" sx={{ fontWeight: 700 }}>
             TimeSheet
           </Typography>
         </Box>
@@ -62,7 +65,7 @@ export default function Header() {
               English
             </Typography>
             <ArrowDropDownIcon fontSize="small" sx={{ color: "white" }} />
-            <IconButton sx={{ color: "white", ml: 2 }}>
+            <IconButton sx={{ color: "white", ml: 1 }}>
               <MoreVertIcon fontSize="medium" />
             </IconButton>
           </Box>

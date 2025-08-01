@@ -12,14 +12,19 @@ import Divider from "@mui/material/Divider";
 import General from "./General/General";
 import Notification from "./Notification/Notification";
 import TasksTab from "./Task/Task";
+import Team from "./Teams/Teams";
 
 
 interface ProjectFormProps {
   open: boolean;
   onClose: () => void;
+  customers: any[];
+  users: any[];
+  tasks: any[];
+  branches: any[];
 }
 
-const ProjectForm: React.FC<ProjectFormProps> = ({ open, onClose }) => {
+const ProjectForm: React.FC<ProjectFormProps> = ({ open, onClose, customers, users, tasks, branches }) => {
   const [tab, setTab] = React.useState(0);
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) =>
     setTab(newValue);
@@ -27,7 +32,8 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ open, onClose }) => {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth sx={{
     "& .MuiDialog-paper": {
-      minHeight: "650px", 
+      height: "650px",
+
     },
   }}>
       <DialogTitle
@@ -68,9 +74,9 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ open, onClose }) => {
           <Tab label="Notification" />
         </Tabs>
         <Divider />
-         {tab === 0 && <General />}
-         {/* {tab === 1 && <Team />} */}
-         {tab === 2 && <TasksTab />}
+         {tab === 0 && <General customers={customers} />}
+         {tab === 1 && <Team users={users} branches={branches} />}
+         {tab === 2 && <TasksTab tasks={tasks} />}
          {tab === 3 && <Notification />}
       </DialogContent>
        <Divider sx={{ mx: 3 }} />
