@@ -1,5 +1,16 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Box, Checkbox, FormGroup, TextField, Typography } from "@mui/material";
+
+interface NotificationProps {
+  onValidationChange?: (data: {
+    komuChannelId: string;
+    selectedNotifications: string[];
+  }) => void;
+  initialData?: {
+    komuChannelId: string;
+    selectedNotifications: string[];
+  };
+}
 
 const notificationOptions = [
   "Submit timesheet",
@@ -9,8 +20,9 @@ const notificationOptions = [
   "Approve/Reject Change Working Time",
 ];
 
-const Notification = () => {
-  const [checked, setChecked] = React.useState<string[]>([]);
+const Notification = ({ onValidationChange, initialData }: NotificationProps) => {
+  const [checked, setChecked] = React.useState<string[]>(initialData?.selectedNotifications || []);
+  const [komuChannelId, setKomuChannelId] = React.useState(initialData?.komuChannelId || "");
 
   const handleChange = (label: string) => {
     setChecked((prev) =>
@@ -20,12 +32,32 @@ const Notification = () => {
     );
   };
 
+  // Update parent validation whenever notification data changes
+  useEffect(() => {
+    if (onValidationChange) {
+      onValidationChange({
+        komuChannelId: komuChannelId,
+        selectedNotifications: checked,
+      });
+    }
+  }, [komuChannelId, checked, onValidationChange]);
+
+  // Cập nhật state khi initialData thay đổi
+  useEffect(() => {
+    if (initialData) {
+      setKomuChannelId(initialData.komuChannelId || "");
+      setChecked(initialData.selectedNotifications || []);
+    }
+  }, [initialData]);
+
   return (
     <Box sx={{ width: "100%", mx: "auto", mt: 2 }}>
       <TextField
         fullWidth
         variant="standard"
         placeholder="Komu Channel Id"
+        value={komuChannelId}
+        onChange={(e) => setKomuChannelId(e.target.value)}
         sx={{
           mb: 2,
           "& .MuiInput-underline:hover:before": {

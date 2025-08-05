@@ -11,23 +11,52 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
+import { Task } from "../../../../types";
 
-const TasksTab: React.FC<{ tasks?: any[] }> = ({ tasks = [] }) => {
+interface TasksTabProps {
+  tasks?: Task[];
+  onValidationChange?: (addedTasks: Task[]) => void;
+  initialData?: {
+    addedTasks: Task[];
+  };
+}
+
+const TasksTab: React.FC<TasksTabProps> = ({ tasks = [], onValidationChange, initialData }) => {
   const [selectedTask, setSelectedTask] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
-  const [addedTasks, setAddedTasks] = useState<any[]>([]);
-  const [availableTasks, setAvailableTasks] = useState<any[]>(tasks);
+  const [addedTasks, setAddedTasks] = useState<Task[]>(initialData?.addedTasks || []);
+  const [availableTasks, setAvailableTasks] = useState<Task[]>(tasks);
 
   const toggleOpen = () => setOpen(!open);
 
-  const handleAddTask = (task: any) => {
+  // Update parent validation whenever addedTasks changes
+  useEffect(() => {
+    if (onValidationChange) {
+      onValidationChange(addedTasks);
+    }
+  }, [addedTasks, onValidationChange]);
+
+  // Cập nhật addedTasks khi initialData thay đổi
+  useEffect(() => {
+    if (initialData?.addedTasks) {
+      setAddedTasks(initialData.addedTasks);
+    }
+  }, [initialData]);
+
+  // Cập nhật availableTasks khi tasks hoặc addedTasks thay đổi
+  useEffect(() => {
+    const addedTaskIds = addedTasks.map(task => task.id);
+    setAvailableTasks(tasks.filter(task => !addedTaskIds.includes(task.id)));
+  }, [tasks, addedTasks]);
+
+  const handleAddTask = (task: Task) => {
     if (!addedTasks.find(t => t.id === task.id)) {
       setAddedTasks(prev => [...prev, { ...task, billable: false }]);
       setAvailableTasks(prev => prev.filter(t => t.id !== task.id));
     }
     setSelectedTask(null);
   };
-  const handleRemoveTask = (task: any) => {
+  const handleRemoveTask = (task: Task) => {
     setAddedTasks(prev => prev.filter(t => t.id !== task.id));
 
     setAvailableTasks(prev => {
@@ -36,10 +65,10 @@ const TasksTab: React.FC<{ tasks?: any[] }> = ({ tasks = [] }) => {
       }
       return prev;
     });
-    setSelectedTask(task.id);
+    setSelectedTask(task.id.toString());
   };
 
-  const handleToggleBillable = (taskId: string) => {
+  const handleToggleBillable = (taskId: number) => {
     setAddedTasks(prev =>
       prev.map(task =>
         task.id === taskId ? { ...task, billable: !task.billable } : task
@@ -188,7 +217,7 @@ const TasksTab: React.FC<{ tasks?: any[] }> = ({ tasks = [] }) => {
           {availableTasks.map((task) => (
             <Paper
               key={task.id}
-              onClick={() => setSelectedTask(task.id)}
+              onClick={() => setSelectedTask(task.id.toString())}
               elevation={0}
               sx={{
                 px: 2,
@@ -199,7 +228,7 @@ const TasksTab: React.FC<{ tasks?: any[] }> = ({ tasks = [] }) => {
                 borderBottom: '1px solid #ddd',
                 borderRadius: 0,
                 backgroundColor:
-                  selectedTask === task.id
+                  selectedTask === task.id.toString()
                     ? '#ffffff'
                     : '#f2f2f2',
               }}

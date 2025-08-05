@@ -16,12 +16,61 @@ import AddIcon from "@mui/icons-material/Add";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import Menu from "@mui/material/Menu";
 import Box from "@mui/material/Box";
+import Snackbar from "@mui/material/Snackbar";
+import Alert from "@mui/material/Alert";
 import ProjectForm from "./ProjectForm/ProjectForm";
 import { projectAPI, customerAPI, ProjectQuantity, userAPI, taskAPI, branchAPI } from "../../services/api";
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import EditIcon from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import DeleteIcon from '@mui/icons-material/Delete';
+
+// Type definitions
+interface Project {
+  id: number;
+  name: string;
+  code: string;
+  customerName: string;
+  activeMember: number;
+  pms: string[];
+  timeStart: string;
+  timeEnd: string;
+  status: number;
+  projectType?: string;
+}
+
+interface Customer {
+  id: number;
+  name: string;
+  [key: string]: unknown;
+}
+
+interface User {
+  id: number;
+  name: string;
+  [key: string]: unknown;
+}
+
+interface Task {
+  id: number;
+  name: string;
+  [key: string]: unknown;
+}
+
+interface Branch {
+  id: number;
+  name: string;
+  [key: string]: unknown;
+}
+
+interface ProjectQuantityItem {
+  status: number;
+  quantity: number;
+}
+
+interface GroupedProjects {
+  [key: string]: Project[];
+}
 
 
 const ProjectToolbar = () => {
@@ -31,13 +80,15 @@ const ProjectToolbar = () => {
   const [openForm, setOpenForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [projectQuantity, setProjectQuantity] = useState<ProjectQuantity | null>(null);
-  const [projects, setProjects] = useState<any[]>([]);
-  const [customers, setCustomers] = useState<any[]>([]);
-  const [users, setUsers] = useState<any[]>([]);
-  const [tasks, setTasks] = useState<any[]>([]);
-  const [branches, setBranches] = useState<any[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [branches, setBranches] = useState<Branch[]>([]);
   const [actionAnchorEl, setActionAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string>("");
+  const [showSuccessAlert, setShowSuccessAlert] = useState(false);
 
   const handleActionClick = (event: React.MouseEvent<HTMLElement>, projectId: number) => {
     setActionAnchorEl(event.currentTarget);
@@ -82,7 +133,7 @@ const ProjectToolbar = () => {
       if (response && Array.isArray(response.result)) {
         const temp: { [key: string]: number } = {};
         let total = 0;
-        response.result.forEach((item: any) => {
+        response.result.forEach((item: ProjectQuantityItem) => {
           if (item.status === 0) temp.active = item.quantity;
           if (item.status === 1) temp.inactive = item.quantity;
           if (item.status === 3) temp.archived = item.quantity;
@@ -162,7 +213,7 @@ const ProjectToolbar = () => {
   };
 
   // Nhóm projects theo customerName
-  const groupedProjects = projects.reduce((acc: { [key: string]: any[] }, project) => {
+  const groupedProjects = projects.reduce((acc: GroupedProjects, project) => {
     const customer = project.customerName || 'Unknown Customer';
     if (!acc[customer]) acc[customer] = [];
     acc[customer].push(project);
@@ -285,7 +336,20 @@ const ProjectToolbar = () => {
             }}
           />
         </Box>
-        <ProjectForm open={openForm} onClose={() => setOpenForm(false)} customers={customers} users={users} tasks={tasks} branches={branches} />
+        <ProjectForm 
+          open={openForm} 
+          onClose={() => setOpenForm(false)} 
+          onSaveSuccess={() => {
+            fetchProjects();
+            fetchProjectQuantity();
+            setSuccessMessage("Project đã được tạo thành công!");
+            setShowSuccessAlert(true);
+          }}
+          customers={customers} 
+          users={users} 
+          tasks={tasks} 
+          branches={branches} 
+        />
         <Box mt={6} px={3}>
           {projects.length === 0 ? (
             <Typography color="text.secondary">Không có project nào.</Typography>
@@ -327,8 +391,15 @@ const ProjectToolbar = () => {
                         }}>
                           {project.activeMember} members
                         </span>
+                        {/* Project Type */}
+                        <span style={{
+                          background: '#9c27b0', color: '#fff', borderRadius: 12,
+                          padding: '2px 10px', fontSize: 13, fontWeight: 600, marginRight: 4, marginBottom: 4, display: 'inline-block'
+                        }}>
+                          {project.projectType || 'N/A'}
+                        </span>
                         {/* Danh sách PM */}
-                        {Array.isArray(project.pms) && project.pms.map((pm: string, idx: number) => (
+                        {Array.isArray(project.pms) && project.pms.map((pm, idx) => (
                           <span key={idx} style={{
                             background: '#1976d2', color: '#fff', borderRadius: 12,
                             padding: '2px 10px', fontSize: 13, fontWeight: 600, marginRight: 4, marginBottom: 4, display: 'inline-block'
@@ -406,6 +477,22 @@ const ProjectToolbar = () => {
           )}
         </Box>
       </Box>
+      
+      {/* Success Alert */}
+      <Snackbar
+        open={showSuccessAlert}
+        autoHideDuration={6000}
+        onClose={() => setShowSuccessAlert(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert 
+          onClose={() => setShowSuccessAlert(false)} 
+          severity="success" 
+          sx={{ width: '100%' }}
+        >
+          {successMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

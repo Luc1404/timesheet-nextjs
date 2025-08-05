@@ -43,6 +43,26 @@ export const projectAPI = {
     const url = `${API_BASE_URL}/services/app/Project/GetQuantityProject`;
     return makeAuthenticatedRequest(url);
   },
+
+  // Create new project
+  create: async (projectData: {
+    name: string;
+    code: string;
+    customerId: number;
+    startDate: string;
+    endDate: string;
+    projectType: string;
+    userIds: number[];
+    taskIds: number[];
+    komuChannelId?: string;
+    notifications?: string[];
+  }) => {
+    const url = `${API_BASE_URL}/services/app/Project/Save`;
+    return makeAuthenticatedRequest(url, {
+      method: 'POST',
+      body: JSON.stringify(projectData),
+    });
+  },
 };
 
 export const customerAPI = {
@@ -50,6 +70,15 @@ export const customerAPI = {
   getAll: async () => {
     const url = `${API_BASE_URL}/services/app/Customer/GetAll`;
     return makeAuthenticatedRequest(url);
+  },
+
+  // Save customer
+  save: async (customerData: { name: string; code: string; address?: string }) => {
+    const url = `${API_BASE_URL}/services/app/Customer/Save`;
+    return makeAuthenticatedRequest(url, {
+      method: 'POST',
+      body: JSON.stringify(customerData),
+    });
   },
 };
 

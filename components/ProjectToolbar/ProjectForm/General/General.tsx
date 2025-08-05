@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
@@ -19,15 +19,31 @@ import DialogContent from "@mui/material/DialogContent";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
+import { Customer } from "../../../../types";
 
-
-interface Customer {
-  id: string | number;
-  name: string;
-}
 
 interface GeneralProps {
   customers: Customer[];
+  onValidationChange?: (data: {
+    client: string;
+    projectName: string;
+    projectCode: string;
+    startAt: dayjs.Dayjs | null;
+    endAt: dayjs.Dayjs | null;
+    projectType: string;
+    note: string;
+    allUser: boolean;
+  }) => void;
+  initialData?: {
+    client: string;
+    projectName: string;
+    projectCode: string;
+    startAt: dayjs.Dayjs | null;
+    endAt: dayjs.Dayjs | null;
+    projectType: string;
+    note: string;
+    allUser: boolean;
+  };
 }
 
 const schema = yup.object().shape({
@@ -37,28 +53,91 @@ const schema = yup.object().shape({
 });
 
 
-const General = ({ customers = [] }: GeneralProps) => {
-  const [client, setClient] = useState("");
-  const [startAt, setStartAt] = useState<dayjs.Dayjs | null>(null);
-  const [endAt, setEndAt] = useState<dayjs.Dayjs | null>(null);
-  const [note, setNote] = useState("");
-  const [allUser, setAllUser] = useState(false);
-  const [projectType, setProjectType] = useState("");
+const General = ({ customers = [], onValidationChange, initialData }: GeneralProps) => {
+  const [startAt, setStartAt] = useState<dayjs.Dayjs | null>(initialData?.startAt || null);
+  const [endAt, setEndAt] = useState<dayjs.Dayjs | null>(initialData?.endAt || null);
+  const [note, setNote] = useState(initialData?.note || "");
+  const [allUser, setAllUser] = useState(initialData?.allUser || false);
+  const [projectType, setProjectType] = useState(initialData?.projectType || "");
   const [openClientModal, setOpenClientModal] = useState(false);
+  const [localCustomers, setLocalCustomers] = useState<Customer[]>(customers);
+  const initializedRef = useRef(false);
+  
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+    watch,
+    setValue,
+  } = useForm({
+    mode: "onTouched",
+    resolver: yupResolver(schema),
+    defaultValues: {
+      client: "",
+      projectName: "",
+      projectCode: "",
+    },
+  });
+
+  // Cập nhật localCustomers khi customers prop thay đổi
+  useEffect(() => {
+    setLocalCustomers(customers);
+  }, [customers]);
+
+  // Khi initialData đổi (dialog mở lại), set lại toàn bộ state
+  useEffect(() => {
+    if (!initializedRef.current && initialData) {
+      setValue("client", initialData.client || "");
+      setValue("projectName", initialData.projectName || "");
+      setValue("projectCode", initialData.projectCode || "");
+      setStartAt(initialData.startAt || null);
+      setEndAt(initialData.endAt || null);
+      setNote(initialData.note || "");
+      setAllUser(initialData.allUser || false);
+      setProjectType(initialData.projectType || "");
+      initializedRef.current = true;
+    }
+    // eslint-disable-next-line
+  }, [initialData]);
+
+
+
+
+  
   const handleOpenClient = () => {
     setOpenClientModal(true);
   };
   const handleCloseClient = () => {
     setOpenClientModal(false);
   };
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-  } = useForm({
-    mode: "onTouched",
-    resolver: yupResolver(schema),
-  });
+
+  const handleClientCreated = (newClient: Customer) => {
+    // Thêm client mới vào danh sách local
+    setLocalCustomers(prev => [...prev, newClient]);
+    
+    // Tự động chọn client mới được tạo
+    setValue("client", newClient.id.toString());
+  };
+
+  // Watch form values for validation
+  const watchedValues = watch();
+
+  // Khi user thay đổi bất kỳ trường nào, gọi onValidationChange để cập nhật lên cha
+  useEffect(() => {
+    if (onValidationChange) {
+      onValidationChange({
+        client: watch("client"),
+        projectName: watch("projectName"),
+        projectCode: watch("projectCode"),
+        startAt,
+        endAt,
+        projectType,
+        note,
+        allUser,
+      });
+    }
+    // eslint-disable-next-line
+  }, [watch("client"), startAt, endAt, projectType, note, allUser, watch("projectName"), watch("projectCode")]);
 
   return (
     <Box
@@ -97,7 +176,21 @@ const General = ({ customers = [] }: GeneralProps) => {
                 <Select
                   {...field}
                   displayEmpty
-                  onChange={(e) => field.onChange(e.target.value)}
+                  onChange={(e) => {
+                    field.onChange(e.target.value);
+                    if (onValidationChange) {
+                      onValidationChange({
+                        client: e.target.value,
+                        projectName: watch("projectName"),
+                        projectCode: watch("projectCode"),
+                        startAt,
+                        endAt,
+                        projectType,
+                        note,
+                        allUser,
+                      });
+                    }
+                  }}
                   onBlur={field.onBlur}
                   value={field.value || ""}
                   MenuProps={{
@@ -112,7 +205,7 @@ const General = ({ customers = [] }: GeneralProps) => {
                   }}
                 >
                   <MenuItem value="">Choose a client...</MenuItem>
-                  {customers.map((customer) => (
+                  {localCustomers.map((customer) => (
                     <MenuItem key={customer.id} value={customer.id}>
                       {customer.name}
                     </MenuItem>
@@ -120,7 +213,7 @@ const General = ({ customers = [] }: GeneralProps) => {
                 </Select>
                 {/* ✅ Hiển thị lỗi */}
                 {errors.client && (
-                  <Typography fontSize={16} variant="caption" color="#f44336" mt={0.5}>
+                  <Typography fontSize={16} variant="caption" color="#f44336" sx={{ margin: 0 }}>
                     {errors.client.message}
                   </Typography>
                 )}
@@ -169,13 +262,14 @@ const General = ({ customers = [] }: GeneralProps) => {
               placeholder="Project Name"
               fullWidth
               error={!!errors.projectName}
-              helperText={
-                errors.projectName?.message && (
-                  <Typography fontSize={16} color="#f44336">
-                    {errors.projectName.message}
-                  </Typography>
-                )
-              }
+              helperText={errors.projectName?.message}
+              FormHelperTextProps={{
+                sx: {
+                  fontSize: 16,
+                  color: "#f44336",
+                  margin: 0,
+                }
+              }}
             />
           )}
         />
@@ -197,13 +291,14 @@ const General = ({ customers = [] }: GeneralProps) => {
               placeholder="Project Code"
               fullWidth
               error={!!errors.projectCode}
-             helperText={
-                errors.projectName?.message && (
-                  <Typography fontSize={16} color="#f44336">
-                    {errors.projectName.message}
-                  </Typography>
-                )
-              }
+              helperText={errors.projectCode?.message}
+              FormHelperTextProps={{
+                sx: {
+                  fontSize: 16,
+                  color: "#f44336",
+                  margin: 0,
+                }
+              }}
             />
           )}
         />
@@ -399,7 +494,7 @@ const General = ({ customers = [] }: GeneralProps) => {
       </Box>
       <Dialog open={openClientModal} onClose={handleCloseClient}>
         <DialogContent>
-          <ClientTab onClose={handleCloseClient} />
+          <ClientTab onClose={handleCloseClient} onClientCreated={handleClientCreated} />
         </DialogContent>
       </Dialog>
     </Box>

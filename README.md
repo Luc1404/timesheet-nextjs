@@ -1,82 +1,124 @@
-# Timesheet Next.js Application
+# Timesheet NextJS Application
 
 ## Mô tả
-Ứng dụng Timesheet được xây dựng bằng Next.js với hệ thống authentication tích hợp.
+Ứng dụng quản lý timesheet được xây dựng bằng Next.js với TypeScript và Material-UI.
 
 ## Tính năng chính
 
-### Authentication
-- Trang đăng nhập với giao diện Material-UI
-- Tích hợp API authentication: `https://training-api-timesheet.nccsoft.vn/api/TokenAuth/Authenticate`
-- Lưu trữ session bằng localStorage và cookies
-- Bảo vệ route với middleware
-- Nút logout trong sidebar
+### Quản lý Project
+- **Tạo project mới**: Form đa tab với các thông tin:
+  - **General**: Thông tin cơ bản (Client, Project Name, Project Code, Dates, Project Type)
+  - **Team**: Chọn thành viên dự án với vai trò và trạng thái
+  - **Tasks**: Chọn và cấu hình các task cho project
+  - **Notification**: Cấu hình thông báo Komu và các loại notification
 
-### Giao diện
-- Trang login với background teal và form trắng
-- Responsive design
-- Loading states và error handling
-- Material-UI components
+- **Lưu và hiển thị**: 
+  - Dữ liệu được lưu vào database thông qua API
+  - Tự động refresh danh sách project sau khi tạo thành công
+  - Hiển thị thông báo thành công
+  - Form được reset sau khi lưu
 
-## Cấu trúc dự án
+- **Hiển thị trong Toolbar**:
+  - Danh sách project được nhóm theo Customer
+  - Hiển thị thông tin chi tiết: tên project, số thành viên, PM, code, ngày bắt đầu/kết thúc, loại project
+  - Tìm kiếm theo client hoặc tên project
+  - Lọc theo trạng thái (Active/Deactive/All)
+  - Actions menu cho mỗi project (Edit, View, Delete)
+
+### Quản lý Client
+- Tạo client mới trực tiếp từ form project
+- Hiển thị danh sách client trong dropdown
+
+### Quản lý User và Task
+- Chọn thành viên từ danh sách user có sẵn
+- Chọn task từ danh sách task có sẵn
+- Cấu hình billable cho từng task
+
+## Cấu trúc thư mục
 
 ```
 timesheet-nextjs/
-├── app/
-│   ├── dashboard/          # Trang dashboard (cần đăng nhập)
-│   ├── layout.tsx          # Layout chính với providers
-│   ├── page.tsx            # Trang chính (login)
-│   └── globals.css
-├── components/
-│   ├── AuthContext.tsx     # Context quản lý authentication
-│   ├── Login.tsx           # Component đăng nhập
-│   ├── Header/             # Header component
-│   ├── Sidebar/            # Sidebar với nút logout
-│   ├── ProjectToolbar/     # Toolbar quản lý projects
-│   └── ClientProviders.tsx # Providers cho Material-UI
-├── middleware.ts           # Middleware bảo vệ routes
-└── package.json
+├── app/                    # Next.js app directory
+├── components/             # React components
+│   ├── ProjectToolbar/     # Main project management
+│   │   ├── ProjectForm/    # Project creation form
+│   │   │   ├── General/    # General information tab
+│   │   │   ├── Teams/      # Team selection tab
+│   │   │   ├── Task/       # Task selection tab
+│   │   │   └── Notification/ # Notification settings tab
+│   │   └── ProjectToolbar.tsx
+│   ├── Header/             # Application header
+│   ├── Sidebar/            # Navigation sidebar
+│   └── Login.tsx           # Login component
+├── services/               # API services
+│   └── api.ts              # API endpoints
+├── types/                  # TypeScript type definitions
+│   └── index.ts
+└── public/                 # Static assets
 ```
+
+## API Endpoints
+
+### Project
+- `GET /services/app/Project/getAll` - Lấy danh sách project
+- `GET /services/app/Project/GetQuantityProject` - Lấy số lượng project theo trạng thái
+- `POST /services/app/Project/Save` - Tạo/cập nhật project
+
+### Customer
+- `GET /services/app/Customer/GetAll` - Lấy danh sách customer
+- `POST /services/app/Customer/Save` - Tạo customer mới
+
+### User
+- `GET /services/app/User/GetUserNotPagging` - Lấy danh sách user
+
+### Task
+- `GET /services/app/Task/GetAll` - Lấy danh sách task
+
+### Branch
+- `GET /services/app/Branch/GetAllBranchFilter` - Lấy danh sách branch
 
 ## Cách sử dụng
 
-### Chạy ứng dụng
-```bash
-npm run dev
-```
+1. **Tạo project mới**:
+   - Click nút "New project" trong toolbar
+   - Điền đầy đủ thông tin trong các tab
+   - Click "Save" để lưu project
 
-### Truy cập
-- Mở trình duyệt tại `http://localhost:3000`
-- Trang mặc định sẽ hiển thị form đăng nhập
-- Sau khi đăng nhập thành công, sẽ chuyển hướng đến `/dashboard`
+2. **Xem danh sách project**:
+   - Projects được hiển thị theo nhóm Customer
+   - Sử dụng thanh tìm kiếm để lọc project
+   - Chọn trạng thái để lọc (Active/Deactive/All)
 
-### API Authentication
-Ứng dụng sử dụng API endpoint:
-```
-POST https://training-api-timesheet.nccsoft.vn/api/TokenAuth/Authenticate
-```
-
-Body request:
-```json
-{
-  "userNameOrEmailAddress": "email@example.com",
-  "password": "password",
-  "rememberClient": true
-}
-```
-
-## Bảo mật
-- Middleware bảo vệ route `/dashboard/*`
-- Session được lưu trong localStorage và cookies
-- Access token được lưu trữ an toàn
-- Tự động logout khi token hết hạn
+3. **Quản lý project**:
+   - Click "Actions" để mở menu quản lý
+   - Chọn Edit/View/Delete tùy theo nhu cầu
 
 ## Công nghệ sử dụng
-- Next.js 15.4.3
-- React 19.1.0
-- Material-UI v7
-- TypeScript
-- Emotion (CSS-in-JS)
 
-## Phiên bản
-© 2025 Timesheet. Version 4.3.0.0 [20251703]
+- **Frontend**: Next.js 15, React 19, TypeScript
+- **UI Framework**: Material-UI (MUI) v7
+- **Form Management**: React Hook Form + Yup validation
+- **Date Handling**: Day.js
+- **Styling**: Emotion CSS-in-JS
+
+## Cài đặt và chạy
+
+```bash
+# Cài đặt dependencies
+npm install
+
+# Chạy development server
+npm run dev
+
+# Build production
+npm run build
+
+# Chạy production
+npm start
+```
+
+## Lưu ý
+
+- Cần có access token trong localStorage để gọi API
+- API base URL: `https://training-api-timesheet.nccsoft.vn/api`
+- Tất cả API calls đều được authenticate với Bearer token
